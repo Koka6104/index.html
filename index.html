@@ -286,7 +286,8 @@
   <section class="screen" id="s3">
     <h2 style="text-align:center;">Xác Nhận Tham Dự</h2>
     <div class="sub">✧ Cùng đến chung vui nhé! ✧</div>
-
+    <label class="field-label" for="guestName">Tên của bạn:</label>
+    <input type="text" id="guestName" class="pw-input" placeholder="Nhập tên của bạn" maxlength="80" style="margin-bottom:16px;">
     <label class="field-label" for="msg">Lời chúc dành cho tân cử nhân:</label>
     <textarea id="msg" placeholder="Gửi vài lời chúc mừng tại đây…"></textarea>
 
@@ -355,17 +356,38 @@
   updateChrome();
 
   // ---- RSVP: save the wish locally (this device/browser only) ----
-  function submitRsvp(){
-    const msgEl = document.getElementById('msg');
-    const msg = msgEl ? msgEl.value.trim() : '';
-    const checked = document.querySelector('input[name="rsvp"]:checked');
-    const rsvpText = checked ? checked.parentElement.textContent.trim() : '';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzDP1ejE3MZzsmaDC9ZvOQSLYvAX8OswExl5cqqQMpmX7TLyGkkQ8kQpfxTjhTowHhDrg/exec';
+
+function submitRsvp(){
+  const nameEl = document.getElementById('guestName');
+  const name = nameEl ? nameEl.value.trim() : '';
+  const msgEl = document.getElementById('msg');
+  const msg = msgEl ? msgEl.value.trim() : '';
+  const checked = document.querySelector('input[name="rsvp"]:checked');
+  const rsvpText = checked ? checked.parentElement.textContent.trim() : '';
+  if(!name){
+    nameEl.focus();
+    nameEl.placeholder = 'Bạn nhớ nhập tên nhé';
+    return;
+  }
+  if(SHEET_URL){
     try{
-      const wishes = JSON.parse(localStorage.getItem('gradWishes') || '[]');
-      wishes.push({ message: msg, rsvp: rsvpText, time: new Date().toISOString() });
-      localStorage.setItem('gradWishes', JSON.stringify(wishes));
-    }catch(e){ /* storage unavailable, ignore silently */ }
-    goTo(4);
+      fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        keepalive: true,
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ name: name, attending: rsvpText, wish: msg })
+      }).catch(function(){});
+    }catch(e){}
+  }
+  try{
+    const wishes = JSON.parse(localStorage.getItem('gradWishes') || '[]');
+    wishes.push({ name: name, message: msg, rsvp: rsvpText, time: new Date().toISOString() });
+    localStorage.setItem('gradWishes', JSON.stringify(wishes));
+  }catch(e){}
+  goTo(4);
+}
   }
 
   // ---- secret: triple-tap the cover badge to open the password screen ----
