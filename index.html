@@ -356,39 +356,39 @@
   updateChrome();
 
   // ---- RSVP: save the wish locally (this device/browser only) ----
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzDP1ejE3MZzsmaDC9ZvOQSLYvAX8OswExl5cqqQMpmX7TLyGkkQ8kQpfxTjhTowHhDrg/exec';
-
-function submitRsvp(){
-  const nameEl = document.getElementById('guestName');
-  const name = nameEl ? nameEl.value.trim() : '';
-  const msgEl = document.getElementById('msg');
-  const msg = msgEl ? msgEl.value.trim() : '';
-  const checked = document.querySelector('input[name="rsvp"]:checked');
-  const rsvpText = checked ? checked.parentElement.textContent.trim() : '';
-  if(!name){
-    nameEl.focus();
-    nameEl.placeholder = 'Bạn nhớ nhập tên nhé';
-    return;
-  }
-  if(SHEET_URL){
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzDP1ejE3MZzsmaDC9ZvOQSLYvAX8OswExl5cqqQMpmX7TLyGkkQ8kQpfxTjhTowHhDrg/exec';
+  
+  function submitRsvp(){
+    const nameEl = document.getElementById('guestName');
+    const name = nameEl ? nameEl.value.trim() : '';
+    const msgEl = document.getElementById('msg');
+    const msg = msgEl ? msgEl.value.trim() : '';
+    const checked = document.querySelector('input[name="rsvp"]:checked');
+    const rsvpText = checked ? checked.parentElement.textContent.trim() : '';
+    if(!name){
+      nameEl.focus();
+      nameEl.placeholder = 'Bạn nhớ nhập tên nhé';
+      return;
+    }
+    if(SHEET_URL){
+      try{
+        fetch(SHEET_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          keepalive: true,
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ name: name, attending: rsvpText, wish: msg })
+        }).catch(function(){});
+      }catch(e){}
+    }
     try{
-      fetch(SHEET_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        keepalive: true,
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ name: name, attending: rsvpText, wish: msg })
-      }).catch(function(){});
+      const wishes = JSON.parse(localStorage.getItem('gradWishes') || '[]');
+      wishes.push({ name: name, message: msg, rsvp: rsvpText, time: new Date().toISOString() });
+      localStorage.setItem('gradWishes', JSON.stringify(wishes));
     }catch(e){}
+    goTo(4);
   }
-  try{
-    const wishes = JSON.parse(localStorage.getItem('gradWishes') || '[]');
-    wishes.push({ name: name, message: msg, rsvp: rsvpText, time: new Date().toISOString() });
-    localStorage.setItem('gradWishes', JSON.stringify(wishes));
-  }catch(e){}
-  goTo(4);
-}
-  }
+    }
 
   // ---- secret: triple-tap the cover badge to open the password screen ----
   let tapCount = 0, tapTimer = null;
